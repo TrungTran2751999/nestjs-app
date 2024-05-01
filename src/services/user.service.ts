@@ -1,17 +1,27 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Column, Entity, PrimaryGeneratedColumn, Repository } from "typeorm";
+import { UserEntity } from "../models/user";
+import { Address } from "src/models/address";
+import { AdressService } from "./address.service";
+import { ClientService } from "./client.service";
 @Injectable()
 export class UserService{
     constructor(
         @InjectRepository(UserEntity)
         private userRepository:Repository<UserEntity>,
+
+        @InjectRepository(Address)
+        private addressRepository:Repository<Address>,
+
+        private addressService:AdressService,
+        
     ){}
     findAll():Promise<UserEntity[]>{
-        return this.userRepository.find()
+        return this.userRepository.find({relations:["address"]})
     }
     findOne(id:number):Promise<any>{
-        return this.userRepository.query("SELECT * FROM UserEntity WHERE id=?",[id])
+        return this.userRepository.query("SELECT * FROM users WHERE id=?",[id])
     }
     createUser(user:UserEntity):Promise<UserEntity>{
         return this.userRepository.save(user)
@@ -22,16 +32,10 @@ export class UserService{
     async remove(id:number):Promise<void>{
         await this.userRepository.delete(id)
     }
-}
-
-@Entity()
-export class UserEntity{
-    @PrimaryGeneratedColumn()
-    id:number;
-
-    @Column()
-    name:string;
-
-    @Column()
-    last_name:string;
+    findAllAddress():Promise<Address[]>{
+        return this.addressRepository.find()    
+    }
+    findAllAddressService():Promise<Address[]>{
+        return this.addressService.findAll();
+    }
 }
